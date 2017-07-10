@@ -16,6 +16,7 @@
 
 * Download RF\_MESH\_SIMULATOR.zip.
 * Extract the downloaded zip file in a directory.
+* If Java isn't installed on your computer please install it [here](https://www.java.com/en/download/)
 
 <a id="c2"></a>
 ## Structure ##
@@ -62,14 +63,14 @@
 |       └──	simulator.jar
 ├── static
 |   ├── images
-|	|   ├── dark_dot.png
-|	|	└── dot.png
+|	  |   ├── dark_dot.png
+|	  |	  └── dot.png
 |   ├──	scripts
-|	|   ├── lib
-|	|   ├── param.js
-|	|   ├── simulation.js
-|	|   ├── simulationOld.js
-|	|	└── topology.js
+|	  |   ├── lib
+|	  |   ├── param.js
+|	  |   ├── simulation.js
+|	  |   ├── simulationOld.js
+|	  |	  └── topology.js
 |   └──	styles.css
 ├── templates
 |   ├── params.html
