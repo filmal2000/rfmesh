@@ -5,10 +5,12 @@
 1. [Installation](#c1)
 2. [Structure](#c2)
 3. [Usage](#c3)
+  
   3.1 [Accessing the web application](#c3.1)
   3.2 [Creating a new topology or modifying an old one](#c3.2)
   3.3 [Creating new parameters or modifying old ones](#c3.3)
   3.4 [Running a simulation](#c3.4)
+
 4. [Parameter Definition](#c4)
 
 <a id="c1"></a>
