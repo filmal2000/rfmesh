@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Topology Creator</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/styles.css" rel="stylesheet" type="text/css"></link>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.3/css/bootstrap-slider.min.css" rel="stylesheet" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="/static/scripts/simulation.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row header">
+            <div class="col-md-12">
+                <h3 class="text-primary">Topology Generator</h3>
+                <ul class="nav nav-tabs">
+                    <li class="disabled"><a href="#">Topology definitions</a></li>
+                    <li class=""><a href="/">Topology</a></li>
+                    <li class=""><a href="/params">Simulation Parameters</a></li>
+                    <li class="active"><a href="/simulation">Simulations</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2">
+                <h4>Topology list</h4>
+                <div id="tplglist" class="">
+                    {% for tplg in topologyList %}
+                    <a class="btn btn-default btn-lg btn-block tplg {% if topologyName != None and tplg == topologyName %}active{% endif %}" href="#" onclick="loadTplg('{{ tplg }}', this)">
+                        <div class="params-name">
+                            {{ tplg }}
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-2">
+                <h4>Simulation Parameters</h4>
+                <div id="paramlist" class="">
+                    {% for paramName in paramsList %}
+                    <a class="btn btn-default btn-lg btn-block param {% if params != None and paramName == params %}active{% endif %}" href="#" onclick="loadParams('{{paramName}}', this)">
+                        <div class="params-name">
+                            {{ paramName }}
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% if simulation != None %}
+            <script>
+                currentSimulation = {{simulation | tojson}};
+            </script>
+            {% endif %} {% if currentTopology != None %}
+            <script>
+                currentTopology = {{topology | tojson}};
+            </script>
+            {% endif %}
+            <div class="col-md-8">
+                {% if params == None or topologyName == None%}
+                <div class="well disabled content text-center" id="select-prompt">
+                    <h3 class="m-t-lg">Please select a topology and parameters to run or review a simulation</h3>
+                </div>
+                {% elif simulation == None %}
+                <div class="panel panel-default content" id="simulation-runner">
+                    <div class="panel-body">
+                        <h3>Simulation</h3>
+                        <button class="btn btn-primary" onclick="runSimulation('{{topologyName}}','{{params}}', true)"> Run Simulation
+                        </button>
+                        <h4>Output</h4>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped active" role="progressbar" id="sim-progress" style="width: 0">
+                            </div>
+                        </div>
+                        <pre class="well well-sm" id="sim-output"></pre>
+                    </div>
+                    <script src="/static/scripts/lib/ansi_up.js"></script>
+                </div>
+                {% else %}
+                <div class="content" id="container">
+                    <div id="map"></div>
+                    <div class="row" id="simulation-controls">
+                        <!--<div class="col-md-3">
+                            <div class="btn-group">
+                                <button id="playbtn" class="btn btn-primary" onclick="toggleSimulation()">Play/Pause</button>
+                                <button id="toggle-fullscreen" class="btn btn-default" onclick="toggleFullScreen()">Full screen</button>
+                                <button id="m-visible-btn" class="btn btn-default active" onclick="toggleMeters()">meters</button>
+                            </div>
+                        </div>-->
+                        <div class="col-md-9" id="map-container">
+                            <!--<input id="timer" type="text" />-->
+                            <div id="legend">
+                                <div id="legendGradient">
+                                    <div id="legendLabelLeft" class="legendLabels"></div>
+                                    <div class="floatRight legendLabels">
+                                        <div class="floatRight" id="unit"></div>
+                                        <div class="floatRight" id="legendLabelRight"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p>Result parameter to show:
+                                <select id="legendParameterList" name="sections" size=1 onchange="updateHeatMap()">
+                                    <option value = 0> Total number of transmissions</option>
+                                    <option value = 1> Total number of collisions</option>
+                                    <option value = 2> Collision probability</option>
+                                    <option value = 3> Total number of created packets</option>
+                                    <option value = 4> Mean packet transit time</option>
+                                </select>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCHIs9kVZw6UgJe7iWaHoylNCVVJcXhn4c&callback=initMap&libraries=visualization" async defer></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.3/bootstrap-slider.min.js" crossorigin="anonymous"></script>-->
+<script src="/static/scripts/lib/chroma.min.js"></script>
+</html>
