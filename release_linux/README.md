@@ -63,14 +63,14 @@
 |       └──	simulator.jar
 ├── static
 |   ├── images
-|	  |   ├── dark_dot.png
-|	  |	  └── dot.png
+|   |   ├── dark_dot.png
+|   |   └── dot.png
 |   ├──	scripts
-|	  |   ├── lib
-|	  |   ├── param.js
-|	  |   ├── simulation.js
-|	  |   ├── simulationOld.js
-|	  |	  └── topology.js
+|   |   ├── lib
+|   |   ├── param.js
+|   |   ├── simulation.js
+|   |   ├── simulationOld.js
+|   |   └── topology.js
 |   └──	styles.css
 ├── templates
 |   ├── params.html
@@ -80,7 +80,7 @@
 |   ├── topology1
 |   |   └── nodes.json
 |   ├── topology2
-|   |	└── nodes.json
+|   |   └── nodes.json
 |   ...
 ├── sim_parameters
 |   ├── defaultParams.json
