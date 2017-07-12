@@ -14,7 +14,7 @@ This simulation tool is proposed to study **the performance of a particular kind
 
 ___
 
-** All of the following releases have their own README.md with specific instructions **
+**All of the following releases have their own README.md with specific instructions**
 
 Windows 10
 : Release for Windows 10 (64 bits) inside release\_windows\_10-64\_bits.
