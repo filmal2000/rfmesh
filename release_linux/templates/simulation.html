@@ -10,7 +10,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.3/css/bootstrap-slider.min.css" rel="stylesheet" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-    <script src="/static/scripts/simulation.js"></script>
+    <script src="/static/scripts/lib/geoxml3-master/kmz/geoxml3.js"></script>
+    <script src="/static/scripts/lib/geoxml3-master/kmz/geoxml3_gxParse_kmz.js"></script>
+    <script src="/static/scripts/lib/geoxml3-master/kmz/ZipFile.complete.js"></script>
 </head>
 
 <body>
@@ -48,6 +50,11 @@
                             {{ paramName }}
                         </div>
                     </a>
+                    {% if params != None and paramName == params %}
+                    <script>
+                        currentParamName = "{{params}}";
+                    </script>
+                    {% endif %}
                     {% endfor %}
                 </div>
             </div>
@@ -82,7 +89,20 @@
                 </div>
                 {% else %}
                 <div class="content" id="container">
-                    <div id="map"></div>
+                    <div id="symbolLegend">
+                        <h3 style="margin-top: 0;">Legend</h3>
+                        <div>
+                            <img src="/static/images/collector.png" alt="Collector Symbol">
+                                : Collector
+                        </div>
+                        <div>
+                            <img src="/static/images/router.png" alt="Router Symbol">
+                                : Router
+                        </div>
+                    </div>
+                    <div id="map">
+
+                    </div>
                     <div class="row" id="simulation-controls">
                         <!--<div class="col-md-3">
                             <div class="btn-group">
@@ -102,15 +122,50 @@
                                     </div>
                                 </div>
                             </div>
-                            <p>Result parameter to show:
-                                <select id="legendParameterList" name="sections" size=1 onchange="updateHeatMap()">
+                            <div class="row" style="margin-top:2px; margin-bottom:5px">
+                                <div class="col-md-4">
+                                    <div class="bordered">
+                                        <div id="btnYR">
+                                            <div class="text-outline">
+                                                Yellow to Red
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="bordered">
+                                        <div id="btnBW">
+                                            <div class="text-outline">
+                                                Black to white
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="bordered">
+                                        <div id="btnGB">
+                                            <div class="text-outline">
+                                                Green to Blue
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>Result parameter to show:
+                                <select id="legendParameterList" name="sections" size=1 
+                                    onchange="if (currentGradientIndex == 0)
+                                        $('#btnYR').click();
+                                    else if (currentGradientIndex == 1)
+                                        $('#btnBW').click();
+                                    else if (currentGradientIndex = 2)
+                                        $('#btnGB').click();">
                                     <option value = 0> Total number of transmissions</option>
                                     <option value = 1> Total number of collisions</option>
                                     <option value = 2> Collision probability</option>
                                     <option value = 3> Total number of created packets</option>
                                     <option value = 4> Mean packet transit time</option>
                                 </select>
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -118,8 +173,9 @@
             </div>
         </div>
     </div>
+    <script src="/static/scripts/simulation.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCHIs9kVZw6UgJe7iWaHoylNCVVJcXhn4c&callback=initMap&libraries=visualization" async defer></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.3/bootstrap-slider.min.js" crossorigin="anonymous"></script>-->
+    <script src="/static/scripts/lib/chroma.min.js"></script>
 </body>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCHIs9kVZw6UgJe7iWaHoylNCVVJcXhn4c&callback=initMap&libraries=visualization" async defer></script>
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.5.3/bootstrap-slider.min.js" crossorigin="anonymous"></script>-->
-<script src="/static/scripts/lib/chroma.min.js"></script>
 </html>

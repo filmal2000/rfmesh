@@ -99,7 +99,7 @@ function addMeters(metersList) {
             url: "/static/images/dot.png"
         },
         fillColor: 'red',
-        strokeColor: 'blue',
+        strokeColor: 'red',
         zIndex: 0
     });
     map.data.add({ geometry: new google.maps.Data.MultiPoint(metersList) });

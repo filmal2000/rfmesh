@@ -33,9 +33,6 @@
 ***sim_parameters/*** 
 : Contains a list of default parameters. Parameters that you define will be saved here.
 
-***simulations/*** 
-: Contains the simulation results, classified by topology and by parameters.
-
 ***static/***
 : Contains the images, the styling and the scripts of the web pages of the application.
 
@@ -64,6 +61,8 @@
 ├── static
 |   ├── images
 |   |   ├── dark_dot.png
+|   |   ├── collector.png
+|   |   ├── router.png
 |   |   └── dot.png
 |   ├──	scripts
 |   |   ├── lib
@@ -71,7 +70,8 @@
 |   |   ├── simulation.js
 |   |   ├── simulationOld.js
 |   |   └── topology.js
-|   └──	styles.css
+|   ├──	styles.css
+|   └──	simulations/
 ├── templates
 |   ├── params.html
 |   ├──	simulation.html
