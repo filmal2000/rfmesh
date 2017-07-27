@@ -16,8 +16,8 @@ ___
 
 **All of the following releases have their own README.md with specific instructions**
 
-Windows 10
-: Release for Windows 10 (64 bits) inside release\_windows\_10-64\_bits.
+Windows
+: Release for Windows inside release\_windows.
 
 Linux distributions
 : Release for Linux distributions inside release\_linux.
