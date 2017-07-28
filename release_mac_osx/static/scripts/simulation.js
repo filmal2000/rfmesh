@@ -6,34 +6,16 @@ var collectors = [];
 
 var heatmapData = [];
 var heatmap = undefined;
-var gradient = [
-    'rgba(0, 255, 0, 0)',
-    'rgba(0, 255, 0, 1)',
-    'rgba(0, 255, 0, 1)',
-    'rgba(0, 255, 0, 1)',
-    'rgba(0, 255, 0, 1)',
-    'rgba(64, 255, 0, 1)',
-    'rgba(64, 255, 0, 1)',
-    'rgba(64, 255, 0, 1)',
-    'rgba(64, 255, 0, 1)',
-    'rgba(64, 255, 0, 1)',
-    'rgba(128, 255, 0, 1)',
-    'rgba(191, 255, 0, 1)',
-    'rgba(255, 255, 0, 1)',
-    'rgba(255, 233, 0, 1)',
-    'rgba(255, 210, 0, 1)',
-    'rgba(255, 188, 0, 1)',
-    'rgba(255, 188, 0, 1)',
-    'rgba(255, 165, 0, 1)',
-    'rgba(255, 165, 0, 1)',
-    'rgba(255, 124, 0, 1)',
-    'rgba(255, 124, 0, 1)',
-    'rgba(255, 83, 0, 1)',
-    'rgba(255, 83, 0, 1)',
-    'rgba(255, 41, 0, 1)',
-    'rgba(255, 0, 0, 1)'
-];
 
+var gradientRY = ['rgba(255, 255, 0, 1)', 'rgba(255, 0, 0, 1)'];
+var gradientBW = ['rgba(0, 0, 0, 1)', 'rgba(255, 255, 255, 1)'];
+var gradientGB = ['rgba(0, 255, 0, 1)', 'rgba(0, 0, 255, 1)'];
+var currentGradient = gradientRY;
+var currentGradientIndex = 0;
+
+let kmlParser = undefined;
+
+var currentParam;
 var currentSimulation;
 var currentTopology;
 
@@ -41,26 +23,9 @@ var maxTransmissionCount;
 var maxCollisionCount;
 var maxCollisionProbability;
 var maxCreatedPacketCount;
-var maxMeanPacketTransitTimeSlots;
+var maxMeanPacketTransitTime;
 
-// var collisions = [];
-// var transmissions = [];
-
-// var frameCollisions = [];
-// var frametransmissions = [];
-// var frameAnimations = [];
-
-// var endTime = 100;
-// var curTime = 0;
-
-// var timer = $("#timer");
-// var timerSlider;
-// var playbtn = $("#playbtn");
-
-// var maxCanals;
-// var intervalFrameDuration = 500;
-// var packetsAnimation = false;
-// var packetsByWidth = false;
+const SIM_PATH = "/static/simulations/";
 
 var websocket;
 
@@ -76,19 +41,374 @@ function runSimulation(topologyName, paramName, lightMode) {
             $('#sim-progress').css("width", progressValue).text(progressValue)
         } else {
             $('#sim-output').append(ansi_up.ansi_to_html(output));
-            console.log("adwdw")
         }
     };
     websocket.onclose = function () {
         $('#sim-progress').removeClass("progress-bar-striped active");
-        console.log("!!!!!!")
         location.reload(); 
     };
 }
 
 // called by google maps script
 function initMap() {
+    let darkStyledMapStyle = new google.maps.StyledMapType ( 
+            [
+                {
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#212121"
+                    }
+                    ]
+                },
+                {
+                    "elementType": "labels.icon",
+                    "stylers": [
+                    {
+                        "visibility": "off"
+                    }
+                    ]
+                },
+                {
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#757575"
+                    }
+                    ]
+                },
+                {
+                    "elementType": "labels.text.stroke",
+                    "stylers": [
+                    {
+                        "color": "#212121"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "administrative",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#757575"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "administrative.country",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#9e9e9e"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "administrative.land_parcel",
+                    "stylers": [
+                    {
+                        "visibility": "off"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "administrative.locality",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#bdbdbd"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "poi",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#757575"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "poi.park",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#181818"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "poi.park",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#616161"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "poi.park",
+                    "elementType": "labels.text.stroke",
+                    "stylers": [
+                    {
+                        "color": "#1b1b1b"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "road",
+                    "elementType": "geometry.fill",
+                    "stylers": [
+                    {
+                        "color": "#2c2c2c"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "road",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#8a8a8a"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "road.arterial",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#373737"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "road.highway",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#3c3c3c"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "road.highway.controlled_access",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#4e4e4e"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "road.local",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#616161"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "transit",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#757575"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "water",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#000000"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "water",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#3d3d3d"
+                    }
+                    ]
+                }
+            ],
+            {name: 'Dark'}
+        );
+        
+        let silverStyledMapStyle = new google.maps.StyledMapType ( 
+            [
+                {
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#f5f5f5"
+                    }
+                    ]
+                },
+                {
+                    "elementType": "labels.icon",
+                    "stylers": [
+                    {
+                        "visibility": "off"
+                    }
+                    ]
+                },
+                {
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#616161"
+                    }
+                    ]
+                },
+                {
+                    "elementType": "labels.text.stroke",
+                    "stylers": [
+                    {
+                        "color": "#f5f5f5"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "administrative.land_parcel",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#bdbdbd"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "poi",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#eeeeee"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "poi",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#757575"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "poi.park",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#e5e5e5"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "poi.park",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#9e9e9e"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "road",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#ffffff"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "road.arterial",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#757575"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "road.highway",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#dadada"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "road.highway",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#616161"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "road.local",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#9e9e9e"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "transit.line",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#e5e5e5"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "transit.station",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#eeeeee"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "water",
+                    "elementType": "geometry",
+                    "stylers": [
+                    {
+                        "color": "#c9c9c9"
+                    }
+                    ]
+                },
+                {
+                    "featureType": "water",
+                    "elementType": "labels.text.fill",
+                    "stylers": [
+                    {
+                        "color": "#9e9e9e"
+                    }
+                    ]
+                }
+            ],
+            {name: 'Silver'}
+        );
+
+
+    
     if (document.getElementById('map') != null) {
+        
         map = new google.maps.Map(document.getElementById('map'), {
             zoom: 14,
             center: {
@@ -96,7 +416,7 @@ function initMap() {
                 lng: -73.71938522905111
             },
             mapTypeControlOptions: {
-                mapTypeIds: ['roadmap']
+                mapTypeIds: ['dark_styled_map', 'silver_styled_map']
             },
             styles: [{
                 featureType: "all",
@@ -106,6 +426,13 @@ function initMap() {
                 ]
             }]
         });
+
+        map.mapTypes.set('dark_styled_map', darkStyledMapStyle);
+        map.setMapTypeId('dark_styled_map');
+        map.mapTypes.set('silver_styled_map', silverStyledMapStyle); 
+
+        map.controls[google.maps.ControlPosition.TOP_RIGHT].push(document.getElementById('symbolLegend'));
+
         init();
     }
 }
@@ -117,56 +444,15 @@ function init() {
 
         computeMinMax();
 
-        var gradientCss = '(left';
-        for (var i = 0; i < gradient.length; ++i) {
-            gradientCss += ', ' + gradient[i];
-        }
-        gradientCss += ')';
-
-        $('#legendGradient').css('background', '-webkit-linear-gradient' + gradientCss);
-        $('#legendGradient').css('background', '-moz-linear-gradient' + gradientCss);
-        $('#legendGradient').css('background', '-o-linear-gradient' + gradientCss);
-        $('#legendGradient').css('background', 'linear-gradient' + gradientCss);
-
-        map.data.setStyle({
-            icon: {
-                url: "/static/images/dot.png"
-            },
-            fillColor: 'red',
-            strokeColor: 'blue',
-            zIndex: 0
-        });
-        meters = map.data.add({ geometry: new google.maps.Data.MultiPoint(currentTopology.meters) });
-        // metersVisible = true;
-
-        updateHeatMap();
-
         currentTopology.routers.forEach(addRouter);
         currentTopology.collectors.forEach(addCollector);
-
-        // collisions = currentSimulation.collisions;
-        // transmissions = currentSimulation.transmissions;
-
-        // endTime = transmissions[transmissions.length - 1].timeSlot;
-        // curTime = 0;
-
-        // var highlights = collisions.map(function(coll) {
-        //     return { start: coll.timeSlot - 1, end: coll.timeSlot + 1 }
-        // });
-
-        // timerSlider = $(timer).slider({
-        //     id: 'timerSlider',
-        //     min: 0,
-        //     max: endTime,
-        //     step: 1,
-        //     value: 0,
-        //     rangeHighlights: highlights
-        // });
 
         $("#map-container").removeClass("hidden");
         google.maps.event.trigger(map, 'resize');
 
         map.setCenter(currentTopology.collectors[0]);
+
+        $('#btnYR').click();
     }
 }
 
@@ -183,27 +469,6 @@ function toggleMeters() {
         mtrsVisbileBtn.addClass('active');
     }
     metersVisible = !metersVisible;
-}
-
-function addMeter(meter) {
-    // let ratio = 0;
-    switch ($("#legendParameterList").val()) {
-        case "0":
-            heatmapData.push({location: new google.maps.LatLng(meter.position), weight: meter.transmissionCount});// + maxTransmissionCount/4.0});
-            break;
-        case "1":
-            heatmapData.push({location: new google.maps.LatLng(meter.position), weight: meter.collisionCount});// + maxCollisionCount/4.0});
-            break;
-        case "2":
-            heatmapData.push({location: new google.maps.LatLng(meter.position), weight: meter.collisionCount*100.0/meter.transmissionCount});// + maxCollisionProbability/4.0});
-            break;
-        case "3":
-            heatmapData.push({location: new google.maps.LatLng(meter.position), weight: meter.createdPacketCount});// + maxCreatedPacketCount/4.0});
-            break;
-        case "4":
-            heatmapData.push({location: new google.maps.LatLng(meter.position), weight: meter.meanPacketTransitTimeSlots});// + maxMeanPacketTransitTimeSlots/4.0});
-            break;
-    }
 }
 
 // /// Routers
@@ -268,7 +533,7 @@ function computeMinMax() {
     maxCollisionCount = 0;
     maxCollisionProbability = 0;
     maxCreatedPacketCount = 0;
-    maxMeanPacketTransitTimeSlots = 0;
+    maxMeanPacketTransitTime = 0;
     nodeList.filter(function (ns) {
         return ns.type == "SMART_METER"
     }).forEach(function (ns) {
@@ -276,58 +541,162 @@ function computeMinMax() {
         maxCollisionCount = Math.max(maxCollisionCount, ns.collisionCount);
         maxCollisionProbability = Math.max(maxCollisionProbability, ns.collisionCount*1.0/ns.transmissionCount);
         maxCreatedPacketCount = Math.max(maxCreatedPacketCount, ns.createdPacketCount);
-        maxMeanPacketTransitTimeSlots = Math.max(maxMeanPacketTransitTimeSlots, ns.meanPacketTransitTimeSlots);
+        maxMeanPacketTransitTime = Math.max(maxMeanPacketTransitTime, ns.meanPacketTransitTime);
     });
-}
-
-function updateHeatMap() {
-    heatmapData = [];
-    nodeList.filter(function (ns) {
-        return ns.type == "SMART_METER"
-    }).forEach(addMeter);
-    if (heatmap)
-        heatmap.setMap(null);
-    heatmap = new google.maps.visualization.HeatmapLayer({
-        opacity: 1,
-        data: heatmapData,
-        gradient: gradient,
-        radius: 7
-    });
-    heatmap.setMap(map);
     updateLegend();
 }
 
 function updateLegend() {
+    var gradientCss = '(left';
+    currentGradient.map((color) => {
+        gradientCss += ', ' + color;
+    });
+    gradientCss += ')';
+
+    $('#legendGradient').css('background', '-webkit-linear-gradient' + gradientCss);
+    $('#legendGradient').css('background', '-moz-linear-gradient' + gradientCss);
+    $('#legendGradient').css('background', '-o-linear-gradient' + gradientCss);
+    $('#legendGradient').css('background', 'linear-gradient' + gradientCss);
+
     switch ($("#legendParameterList").val()) {
         case "0":
             $("#legendLabelLeft").text("0(transmissions)");
             $("#legendLabelRight").text(maxTransmissionCount);
+            $("#legendLabelLeft").css("color", currentGradient[1]);
+            $("#legendLabelRight").css("color", currentGradient[0]);
+            $("#unit").css("color", currentGradient[0]);
             $("#unit").text("(transmissions)");
             break;
         case "1":
             $("#legendLabelLeft").text("0(collisions)");
             $("#legendLabelRight").text(maxCollisionCount);
+            $("#legendLabelLeft").css("color", currentGradient[1]);
+            $("#legendLabelRight").css("color", currentGradient[0]);
+            $("#unit").css("color", currentGradient[0]);
             $("#unit").text("(collisions)");
             break;
         case "2":
             $("#legendLabelLeft").text("0.00%");
             $("#legendLabelRight").text((maxCollisionProbability*100).toFixed(2));
+            $("#legendLabelLeft").css("color", currentGradient[1]);
+            $("#legendLabelRight").css("color", currentGradient[0]);
+            $("#unit").css("color", currentGradient[0]);
             $("#unit").text("%");
             break;
         case "3":
             $("#legendLabelLeft").text("0(packets)");
             $("#legendLabelRight").text(maxCreatedPacketCount);
+            $("#legendLabelLeft").css("color", currentGradient[1]);
+            $("#legendLabelRight").css("color", currentGradient[0]);
+            $("#unit").css("color", currentGradient[0]);
             $("#unit").text("(packets)");
             break;
         case "4":
-            $("#legendLabelLeft").text("0(time slots)");
-            $("#legendLabelRight").text(maxMeanPacketTransitTimeSlots.toFixed(2));
-            $("#unit").text("(time slots)");
-            maxIntensity = maxMeanPacketTransitTimeSlots;
+            $("#legendLabelLeft").text("0(seconds)");
+            $("#legendLabelRight").text(maxMeanPacketTransitTime.toFixed(2));
+            $("#legendLabelLeft").css("color", currentGradient[1]);
+            $("#legendLabelRight").css("color", currentGradient[0]);
+            $("#unit").css("color", currentGradient[0]);
+            $("#unit").text("(seconds)");
             break;
     }
 }
 
+$('#btnYR').click(() => {
+    currentGradient = gradientRY;
+    currentGradientIndex = 0;
+    updateLegend();
+    if(kmlParser)
+        try {
+            kmlParser.hideDocument();
+            
+        } catch (error) {}
+    kmlParser = new geoXML3.parser({
+        map : map,
+        singleInfoWindow:true
+    });
+    switch ($("#legendParameterList").val()) {
+        case "0":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/YellowToRed/transmissionCount.kmz");
+            break;
+        case "1":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/YellowToRed/collisionCount.kmz");
+            break;
+        case "2":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/YellowToRed/collisionProbability.kmz");
+            break;
+        case "3":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/YellowToRed/createdPacketCount.kmz");
+            break;
+        case "4":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/YellowToRed/meanPacketTransitTime.kmz");
+            break;
+    }
+});
+
+$('#btnBW').click(() => { 
+    currentGradient = gradientBW;
+    currentGradientIndex = 1;
+    updateLegend();
+    if(kmlParser)
+        try {
+            kmlParser.hideDocument();
+            
+        } catch (error) {} 
+    kmlParser = new geoXML3.parser({
+        map : map,
+        singleInfoWindow:true
+    });
+    switch ($("#legendParameterList").val()) {
+        case "0":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/BlackToWhite/transmissionCount.kmz");
+            break;
+        case "1":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/BlackToWhite/collisionCount.kmz");
+            break;
+        case "2":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/BlackToWhite/collisionProbability.kmz");
+            break;
+        case "3":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/BlackToWhite/createdPacketCount.kmz");
+            break;
+        case "4":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/BlackToWhite/meanPacketTransitTime.kmz");
+            break;
+    }
+});
+
+$('#btnGB').click(() => {
+    currentGradient = gradientGB;
+    currentGradientIndex = 2;
+    updateLegend();
+    if(kmlParser)
+        try {
+            kmlParser.hideDocument();
+            
+        } catch (error) {}
+    kmlParser = new geoXML3.parser({
+        map : map,
+        singleInfoWindow:true
+    });
+    switch ($("#legendParameterList").val()) {
+        case "0":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/GreenToBlue/transmissionCount.kmz");
+            break;
+        case "1":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/GreenToBlue/collisionCount.kmz");
+            break;
+        case "2":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/GreenToBlue/collisionProbability.kmz");
+            break;
+        case "3":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/GreenToBlue/createdPacketCount.kmz");
+            break;
+        case "4":
+            kmlParser.parse(SIM_PATH + currentTopology.name + '/' + currentParamName + "/GreenToBlue/meanPacketTransitTime.kmz");
+            break;
+    }
+});
 //// Controls
 // var tglFullscreenBtn = $("#toggle-fullscreen");
 
